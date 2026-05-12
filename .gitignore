@@ -1,0 +1,13 @@
+/node_modules
+/.next
+/out
+/uploads
+*.log
+.env
+.env.local
+.vercel
+.DS_Store
+/dist
+/build
+*.lock
+yarn-error.log
