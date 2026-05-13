@@ -1,15 +1,14 @@
 "use client";
 
-import { Suspense } from "react";
+import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
 import Link from "next/link";
 import { GraduationCap, ShieldCheck, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-function LoginForm() {
+function LoginFormContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const next = searchParams.get("next") || "";
@@ -40,8 +39,7 @@ function LoginForm() {
         return;
       }
 
-      const destination =
-        next || (data.role === "admin" ? "/admin/dashboard" : "/student/dashboard");
+      const destination = next || (data.role === "admin" ? "/admin/dashboard" : "/student/dashboard");
       router.push(destination);
       router.refresh();
     } catch (err: any) {
@@ -55,25 +53,18 @@ function LoginForm() {
       <div className="text-center mb-8">
         <div className="flex items-center justify-center gap-2 mb-4">
           <GraduationCap className="h-8 w-8 text-accent-amber" />
-          <span className="font-serif text-2xl font-bold text-navy-dark">
-            CampusOnboard
-          </span>
+          <span className="font-serif text-2xl font-bold text-navy-dark">CampusOnboard</span>
         </div>
         <h1 className="font-serif text-3xl text-navy-dark">Sign in</h1>
-        <p className="text-slate-600 mt-1 text-sm">
-          Choose your role and enter your credentials
-        </p>
+        <p className="text-slate-600 mt-1 text-sm">Choose your role and enter your credentials</p>
       </div>
 
-      {/* Role Tabs */}
       <div className="grid grid-cols-2 gap-2 bg-slate-100 p-1 rounded-lg mb-6">
         <button
           type="button"
           onClick={() => setRole("student")}
           className={`py-2.5 text-sm font-semibold rounded-md transition-all ${
-            role === "student"
-              ? "bg-brand-blue text-white shadow-sm"
-              : "text-slate-600 hover:bg-slate-200"
+            role === "student" ? "bg-brand-blue text-white shadow-sm" : "text-slate-600 hover:bg-slate-200"
           }`}
         >
           Student Portal
@@ -82,9 +73,7 @@ function LoginForm() {
           type="button"
           onClick={() => setRole("admin")}
           className={`py-2.5 text-sm font-semibold rounded-md transition-all ${
-            role === "admin"
-              ? "bg-brand-blue text-white shadow-sm"
-              : "text-slate-600 hover:bg-slate-200"
+            role === "admin" ? "bg-brand-blue text-white shadow-sm" : "text-slate-600 hover:bg-slate-200"
           }`}
         >
           Admin Dashboard
@@ -138,31 +127,18 @@ function LoginForm() {
         </Button>
       </form>
 
-      {/* Demo Credentials */}
       <div className="mt-6 rounded-lg bg-brand-pale p-4">
-        <p className="text-xs font-semibold text-brand-blue uppercase tracking-wider mb-2">
-          Demo Credentials
-        </p>
+        <p className="text-xs font-semibold text-brand-blue uppercase tracking-wider mb-2">Demo Credentials</p>
         {role === "admin" ? (
           <div className="text-sm text-slate-700">
-            <p>
-              <span className="font-medium">Email:</span> admin@campus.edu
-            </p>
-            <p>
-              <span className="font-medium">Password:</span> Admin@123
-            </p>
+            <p><span className="font-medium">Email:</span> admin@campus.edu</p>
+            <p><span className="font-medium">Password:</span> Admin@123</p>
           </div>
         ) : (
           <div className="text-sm text-slate-700">
-            <p>
-              <span className="font-medium">Email:</span> student@example.com
-            </p>
-            <p>
-              <span className="font-medium">Password:</span> (use registered password)
-            </p>
-            <p className="text-xs text-slate-500 mt-1">
-              Register first using Application Number from seed data
-            </p>
+            <p><span className="font-medium">Application No:</span> MH2026-001</p>
+            <p><span className="font-medium">DOB:</span> 2005-06-15</p>
+            <p className="text-xs text-slate-500 mt-1">Register first using the application number above</p>
           </div>
         )}
       </div>
@@ -170,10 +146,7 @@ function LoginForm() {
       {role === "student" && (
         <div className="mt-6 text-center text-sm text-slate-600">
           New student?{" "}
-          <Link
-            href="/register"
-            className="text-brand-blue font-semibold hover:underline"
-          >
+          <Link href="/register" className="text-brand-blue font-semibold hover:underline">
             Create an account
           </Link>
         </div>
@@ -190,7 +163,6 @@ function LoginForm() {
 export default function LoginPage() {
   return (
     <main className="min-h-screen grid lg:grid-cols-2">
-      {/* Left Panel - Branding */}
       <div className="hidden lg:flex flex-col justify-between bg-navy-dark text-white p-12 relative overflow-hidden">
         <div className="absolute inset-0 grid-bg opacity-20" />
         <div className="relative z-10">
@@ -204,30 +176,15 @@ export default function LoginPage() {
           <p className="text-white/70 mt-4 max-w-md text-lg">
             Sign in to continue your admission process or manage student applications.
           </p>
-          <div className="mt-8 flex gap-6">
-            <div>
-              <div className="text-2xl font-bold text-accent-amber">100%</div>
-              <div className="text-xs text-white/50">Digital Process</div>
-            </div>
-            <div>
-              <div className="text-2xl font-bold text-accent-amber">24/7</div>
-              <div className="text-xs text-white/50">Support</div>
-            </div>
-          </div>
         </div>
         <div className="relative z-10 text-xs text-white/40">
           © {new Date().getFullYear()} CampusOnboard
         </div>
       </div>
 
-      {/* Right Panel - Form */}
       <div className="flex items-center justify-center p-6 md:p-12 bg-gradient-to-br from-slate-50 to-white">
-        <Suspense
-          fallback={
-            <div className="text-center text-slate-500">Loading login form...</div>
-          }
-        >
-          <LoginForm />
+        <Suspense fallback={<div className="text-center text-slate-500">Loading...</div>}>
+          <LoginFormContent />
         </Suspense>
       </div>
     </main>
