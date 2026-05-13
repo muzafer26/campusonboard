@@ -1,32 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
-import { createClient } from "@supabase/supabase-js";
-import { SignJWT } from "jose";
+import { getServiceClient } from "@/lib/supabase";
+import { signToken, setSessionCookie } from "@/lib/auth";
+import type { SessionUser } from "@/types";
 
-// Initialize Supabase with service role (bypasses RLS)
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || "fallback-secret-min-32-chars-long"
-);
-const COOKIE_NAME = "co_session";
-const MAX_AGE = 60 * 60 * 24 * 7;
-
-async function signToken(payload: any) {
-  return await new SignJWT(payload)
-    .setProtectedHeader({ alg: "HS256" })
-    .setExpirationTime(`${MAX_AGE}s`)
-    .sign(JWT_SECRET);
-}
+export const runtime = "nodejs";
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { email, password, role } = body;
-
-    console.log("Login attempt:", { email, role });
 
     if (!email || !password || !role) {
       return NextResponse.json(
@@ -35,16 +18,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const supabase = getServiceClient();
+
     if (role === "admin") {
-      // Query admin
-      const { data: admin, error } = await supabase
+      const { data: admin } = await supabase
         .from("admins")
         .select("*")
         .eq("email", email.toLowerCase())
         .maybeSingle();
-
-      console.log("🔍 Found admin:", admin?.email);
-      console.log("Admin query result:", admin ? "Found" : "Not found", error);
 
       if (!admin) {
         return NextResponse.json(
@@ -54,7 +35,6 @@ export async function POST(request: NextRequest) {
       }
 
       const validPassword = await bcrypt.compare(password, admin.password_hash);
-      console.log("Password valid:", validPassword);
 
       if (!validPassword) {
         return NextResponse.json(
@@ -63,12 +43,14 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      const token = await signToken({
+      const sessionUser: SessionUser = {
         id: admin.id,
         email: admin.email,
         full_name: admin.full_name,
         role: "admin",
-      });
+      };
+
+      const token = await signToken(sessionUser);
 
       const response = NextResponse.json({
         success: true,
@@ -76,26 +58,17 @@ export async function POST(request: NextRequest) {
         user: { id: admin.id, name: admin.full_name, email: admin.email },
       });
 
-      response.cookies.set(COOKIE_NAME, token, {
-        httpOnly: true,
-        secure: true,
-        sameSite: "lax",
-        path: "/",
-        maxAge: MAX_AGE,
-      });
+      setSessionCookie(token);
 
       return response;
-    } 
-    
-    else if (role === "student") {
-      // Query student
-      const { data: student, error } = await supabase
+    }
+
+    if (role === "student") {
+      const { data: student } = await supabase
         .from("students")
         .select("*")
         .eq("email", email.toLowerCase())
         .maybeSingle();
-
-      console.log("Student query result:", student ? "Found" : "Not found");
 
       if (!student) {
         return NextResponse.json(
@@ -119,7 +92,6 @@ export async function POST(request: NextRequest) {
       }
 
       const validPassword = await bcrypt.compare(password, student.password_hash);
-      console.log("Password valid:", validPassword);
 
       if (!validPassword) {
         return NextResponse.json(
@@ -128,12 +100,14 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      const token = await signToken({
+      const sessionUser: SessionUser = {
         id: student.id,
         email: student.email,
         full_name: student.full_name,
         role: "student",
-      });
+      };
+
+      const token = await signToken(sessionUser);
 
       const response = NextResponse.json({
         success: true,
@@ -141,13 +115,7 @@ export async function POST(request: NextRequest) {
         user: { id: student.id, name: student.full_name, email: student.email },
       });
 
-      response.cookies.set(COOKIE_NAME, token, {
-        httpOnly: true,
-        secure: true,
-        sameSite: "lax",
-        path: "/",
-        maxAge: MAX_AGE,
-      });
+      setSessionCookie(token);
 
       return response;
     }

@@ -3,8 +3,18 @@ import { NextRequest } from "next/server";
 import { SignJWT, jwtVerify } from "jose";
 import type { SessionUser, UserRole } from "@/types";
 
-const SECRET_KEY = process.env.JWT_SECRET || "fallback-secret-min-32-chars-long-here";
-const SECRET = new TextEncoder().encode(SECRET_KEY);
+function getSecretKey(): Uint8Array {
+  const secret = process.env.JWT_SECRET;
+  if (!secret || secret.length < 32) {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("JWT_SECRET environment variable is not set or too short (min 32 chars)");
+    }
+    console.warn("⚠️ JWT_SECRET not set. Using insecure fallback for development only.");
+  }
+  return new TextEncoder().encode(secret || "dev-insecure-fallback-key-do-not-use-in-production");
+}
+
+const SECRET = getSecretKey();
 const COOKIE_NAME = "co_session";
 const MAX_AGE = 60 * 60 * 24 * 7; // 7 days
 
@@ -19,8 +29,7 @@ export async function verifyToken(token: string): Promise<(SessionUser & { exp: 
   try {
     const { payload } = await jwtVerify(token, SECRET);
     return payload as unknown as SessionUser & { exp: number };
-  } catch (error) {
-    console.error("Token verification failed:", error);
+  } catch {
     return null;
   }
 }

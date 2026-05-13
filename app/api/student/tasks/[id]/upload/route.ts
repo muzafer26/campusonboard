@@ -54,12 +54,18 @@ export async function POST(
     }
 
     // Parse form data
+    console.log("📋 Parsing form data...");
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
 
+    console.log("📦 Form data entries:", Array.from(formData.keys()));
+
     if (!file) {
+      console.error("❌ No file in form data");
       return NextResponse.json({ error: "No file provided" }, { status: 400 });
     }
+
+    console.log("📄 File received:", { name: file.name, type: file.type, size: file.size });
 
     const buffer = Buffer.from(await file.arrayBuffer());
 
@@ -76,13 +82,28 @@ export async function POST(
     }
 
     // Save file to Supabase Storage
-    const savedFile = await saveStudentFile({
+    console.log("📤 Attempting to save file:", {
       studentId: user.id,
       taskId,
       taskSlug: studentTask.task.slug,
-      buffer,
-      originalFilename: file.name,
+      filename: file.name,
+      sizeBytes: buffer.length,
     });
+
+    let savedFile;
+    try {
+      savedFile = await saveStudentFile({
+        studentId: user.id,
+        taskId,
+        taskSlug: studentTask.task.slug,
+        buffer,
+        originalFilename: file.name,
+      });
+      console.log("✅ File saved successfully:", savedFile);
+    } catch (storageError) {
+      console.error("❌ Storage error:", storageError);
+      throw storageError;
+    }
 
     // Update database
     const { error: updateError } = await supabase
