@@ -18,38 +18,45 @@ export async function POST(req: NextRequest) {
     const result = loginSchema.safeParse(body);
 
     if (!result.success) {
-      return NextResponse.json(
-        { error: "Invalid input: " + result.error.issues[0]?.message },
-        { status: 400 }
-      );
+      console.log("❌ Validation failed:", result.error);
+      return NextResponse.json({ error: "Invalid input" }, { status: 400 });
     }
 
     const { email, password, role } = result.data;
+    console.log(`🔍 Login attempt: ${email} as ${role}`);
+
     const supabase = getServiceClient();
 
     if (role === "admin") {
-      // Admin login
+      console.log("📡 Querying admins table...");
       const { data: admin, error } = await supabase
         .from("admins")
         .select("*")
         .eq("email", email.toLowerCase())
         .maybeSingle();
 
-      if (error || !admin) {
-        return NextResponse.json(
-          { error: "Invalid email or password." },
-          { status: 401 }
-        );
+      if (error) {
+        console.error("❌ Supabase error:", error);
+        return NextResponse.json({ error: "Database error" }, { status: 500 });
       }
 
+      if (!admin) {
+        console.log("❌ Admin not found for email:", email);
+        return NextResponse.json({ error: "Invalid email or password." }, { status: 401 });
+      }
+
+      console.log("✅ Admin found, comparing password...");
+      console.log("Stored hash (first 20 chars):", admin.password_hash?.substring(0, 20));
+      
       const isValid = await bcrypt.compare(password, admin.password_hash);
+      console.log(`🔐 Password valid: ${isValid}`);
+
       if (!isValid) {
-        return NextResponse.json(
-          { error: "Invalid email or password." },
-          { status: 401 }
-        );
+        console.log("❌ Password mismatch");
+        return NextResponse.json({ error: "Invalid email or password." }, { status: 401 });
       }
 
+      console.log("✅ Password correct, generating token...");
       const token = await signToken({
         id: admin.id,
         email: admin.email,
@@ -58,50 +65,49 @@ export async function POST(req: NextRequest) {
       });
 
       setSessionCookie(token);
-
-      return NextResponse.json({
-        ok: true,
-        role: "admin",
-        user: { id: admin.id, name: admin.full_name, email: admin.email },
-      });
-    } else {
+      console.log("✅ Login successful for admin");
+      return NextResponse.json({ ok: true, role: "admin" });
+    } 
+    
+    else {
       // Student login
+      console.log("📡 Querying students table...");
       const { data: student, error } = await supabase
         .from("students")
         .select("*")
         .eq("email", email.toLowerCase())
         .maybeSingle();
 
-      if (error || !student) {
-        return NextResponse.json(
-          { error: "Invalid email or password." },
-          { status: 401 }
-        );
+      if (error) {
+        console.error("❌ Supabase error:", error);
+        return NextResponse.json({ error: "Database error" }, { status: 500 });
       }
 
-      // Check account status
+      if (!student) {
+        console.log("❌ Student not found for email:", email);
+        return NextResponse.json({ error: "Invalid email or password." }, { status: 401 });
+      }
+
       if (student.status === "pending_approval") {
-        return NextResponse.json(
-          { error: "Your account is pending activation. Please wait for admin approval." },
-          { status: 403 }
-        );
+        console.log("⚠️ Pending approval account");
+        return NextResponse.json({ error: "Your account is pending activation." }, { status: 403 });
       }
 
       if (student.status === "rejected") {
-        return NextResponse.json(
-          { error: "Your registration was not approved. Please contact the admission office." },
-          { status: 403 }
-        );
+        console.log("⚠️ Rejected account");
+        return NextResponse.json({ error: "Your registration was rejected." }, { status: 403 });
       }
 
+      console.log("✅ Student found, comparing password...");
       const isValid = await bcrypt.compare(password, student.password_hash);
+      console.log(`🔐 Password valid: ${isValid}`);
+
       if (!isValid) {
-        return NextResponse.json(
-          { error: "Invalid email or password." },
-          { status: 401 }
-        );
+        console.log("❌ Password mismatch");
+        return NextResponse.json({ error: "Invalid email or password." }, { status: 401 });
       }
 
+      console.log("✅ Password correct, generating token...");
       const token = await signToken({
         id: student.id,
         email: student.email,
@@ -110,18 +116,11 @@ export async function POST(req: NextRequest) {
       });
 
       setSessionCookie(token);
-
-      return NextResponse.json({
-        ok: true,
-        role: "student",
-        user: { id: student.id, name: student.full_name, email: student.email },
-      });
+      console.log("✅ Login successful for student");
+      return NextResponse.json({ ok: true, role: "student" });
     }
   } catch (error) {
-    console.error("Login error:", error);
-    return NextResponse.json(
-      { error: "Something went wrong. Please try again." },
-      { status: 500 }
-    );
+    console.error("❌ Login error:", error);
+    return NextResponse.json({ error: "Something went wrong." }, { status: 500 });
   }
 }
