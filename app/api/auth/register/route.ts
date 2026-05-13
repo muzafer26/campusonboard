@@ -6,12 +6,12 @@ import { getServiceClient } from "@/lib/supabase";
 export const runtime = "nodejs";
 
 const registerSchema = z.object({
-  full_name: z.string().min(3).regex(/^[a-zA-Z\s]+$/, "Only alphabets and spaces allowed"),
+  full_name: z.string().min(3),
   application_number: z.string().min(1),
-  date_of_birth: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format"),
+  date_of_birth: z.string(),
   email: z.string().email(),
-  mobile: z.string().regex(/^\d{10}$/, "Must be 10 digits"),
-  password: z.string().min(8).regex(/\d/, "Must contain at least one number"),
+  mobile: z.string().regex(/^\d{10}$/),
+  password: z.string().min(8),
 });
 
 export async function POST(req: NextRequest) {
@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
     const { full_name, application_number, date_of_birth, email, mobile, password } = result.data;
     const supabase = getServiceClient();
 
-    // 1. Verify applicant exists in allowed_applicants
+    // 1. Verify applicant exists
     const { data: applicant, error: applicantError } = await supabase
       .from("allowed_applicants")
       .select("*")
@@ -39,33 +39,33 @@ export async function POST(req: NextRequest) {
 
     if (applicantError || !applicant) {
       return NextResponse.json(
-        { error: "Application number or date of birth is incorrect. Please check your allotment letter." },
+        { error: "Application number or date of birth is incorrect." },
         { status: 404 }
       );
     }
 
     if (applicant.is_registered) {
       return NextResponse.json(
-        { error: "This application number has already been used to register an account." },
+        { error: "This application number is already registered." },
         { status: 409 }
       );
     }
 
-    // 2. Check if email already registered
-    const { data: existingStudent } = await supabase
+    // 2. Check if email exists
+    const { data: existing } = await supabase
       .from("students")
       .select("id")
       .eq("email", email.toLowerCase())
       .maybeSingle();
 
-    if (existingStudent) {
+    if (existing) {
       return NextResponse.json(
-        { error: "An account with this email already exists." },
+        { error: "Email already registered." },
         { status: 409 }
       );
     }
 
-    // 3. Create student account
+    // 3. Create student
     const password_hash = await bcrypt.hash(password, 10);
 
     const { data: student, error: createError } = await supabase
@@ -87,7 +87,7 @@ export async function POST(req: NextRequest) {
     if (createError) {
       console.error("Student creation error:", createError);
       return NextResponse.json(
-        { error: "Failed to create account. Please try again." },
+        { error: createError.message || "Failed to create account" },
         { status: 500 }
       );
     }
@@ -101,8 +101,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(
       {
         ok: true,
-        student_id: student.id,
-        message: "Registration submitted! Your account is under review. You will be notified once activated.",
+        message: "Registration submitted! Your account is under review.",
       },
       { status: 201 }
     );
