@@ -256,7 +256,7 @@ function StatCard({
 }: {
   label: string;
   value: number;
-  icon: any;
+  icon: React.ComponentType<{ className?: string }>;
   color: string;
 }) {
   return (

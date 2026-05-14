@@ -103,59 +103,13 @@ CREATE INDEX IF NOT EXISTS idx_student_tasks_status ON student_tasks(status);
 CREATE INDEX IF NOT EXISTS idx_student_tasks_task ON student_tasks(task_id);
 CREATE INDEX IF NOT EXISTS idx_allowed_applicants_appno ON allowed_applicants(application_number);
 CREATE INDEX IF NOT EXISTS idx_allowed_applicants_registered ON allowed_applicants(is_registered);
+CREATE INDEX IF NOT EXISTS idx_student_tasks_reviewed_by ON student_tasks(reviewed_by);
+CREATE INDEX IF NOT EXISTS idx_admins_email ON admins(email);
 
 -- ============================================================
--- ROW LEVEL SECURITY (RLS) Policies
--- Enable RLS on all tables
+-- NOTE: RLS is NOT used in this application.
+-- All API routes use the service_role key (getServiceClient)
+-- which bypasses Row Level Security.
+-- Authentication is handled via JWT tokens (co_session cookie)
+-- and role checks are performed in each API route handler.
 -- ============================================================
-
--- Students table RLS
-ALTER TABLE students ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "Students can view own record"
-  ON students FOR SELECT
-  USING (auth.uid() = id);
-
-CREATE POLICY "Admins have full access to students"
-  ON students FOR ALL
-  USING (auth.role() = 'admin');
-
--- Student tasks table RLS
-ALTER TABLE student_tasks ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "Students can view own tasks"
-  ON student_tasks FOR SELECT
-  USING (auth.uid() = student_id);
-
-CREATE POLICY "Students can update own tasks"
-  ON student_tasks FOR UPDATE
-  USING (auth.uid() = student_id);
-
-CREATE POLICY "Admins have full access to student_tasks"
-  ON student_tasks FOR ALL
-  USING (auth.role() = 'admin');
-
--- Tasks table RLS (read-only for students)
-ALTER TABLE tasks ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "Anyone can view tasks"
-  ON tasks FOR SELECT
-  USING (true);
-
--- Allowed applicants table RLS
-ALTER TABLE allowed_applicants ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "Admins have full access to allowed_applicants"
-  ON allowed_applicants FOR ALL
-  USING (auth.role() = 'admin');
-
--- Admins table RLS (only super_admin can modify)
-ALTER TABLE admins ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "Admins can view own record"
-  ON admins FOR SELECT
-  USING (auth.uid() = id);
-
-CREATE POLICY "Super admins have full access to admins"
-  ON admins FOR ALL
-  USING (auth.role() = 'super_admin');

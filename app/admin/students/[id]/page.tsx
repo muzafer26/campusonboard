@@ -8,7 +8,7 @@ import { AppShell } from "@/components/AppShell";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { StatusBadge } from "@/components/ui/status-badge";
+import { StatusBadge, type TaskStatusType } from "@/components/ui/status-badge";
 import { formatDate, formatDateTime } from "@/lib/utils";
 
 interface Student {
@@ -256,7 +256,7 @@ export default function StudentDetailPage() {
                         </div>
                       </td>
                       <td className="px-6 py-3">
-                        <StatusBadge status={task.status as any} />
+                        <StatusBadge status={task.status as TaskStatusType} />
                       </td>
                       <td className="px-6 py-3 text-slate-500">
                         {task.submitted_at ? formatDateTime(task.submitted_at) : "—"}

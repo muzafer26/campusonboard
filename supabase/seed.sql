@@ -22,7 +22,7 @@ ON CONFLICT (slug) DO NOTHING;
 -- 2. DEMO ADMIN ACCOUNT
 -- Email: admin@campus.edu
 -- Password: Admin@123
--- bcrypt hash generated with 10 rounds
+-- Generate hash: node -e "console.log(require('bcryptjs').hashSync('Admin@123', 10))"
 -- ============================================================
 INSERT INTO admins (full_name, email, password_hash, role) VALUES
 ('Campus Administrator', 'admin@campus.edu', '$2a$10$EIxQOcXfXMlk5JcK0F0E2.lH8FmCnD0Iuv1c2lZdfQYR1nF3hH7Ay', 'admin')
@@ -45,8 +45,8 @@ ON CONFLICT (application_number) DO NOTHING;
 -- ============================================================
 DO $$
 BEGIN
-  RAISE NOTICE '✅ Seed data inserted successfully!';
-  RAISE NOTICE '   - Tasks: % rows', (SELECT COUNT(*) FROM tasks);
-  RAISE NOTICE '   - Admins: % rows', (SELECT COUNT(*) FROM admins);
-  RAISE NOTICE '   - Allowed Applicants: % rows', (SELECT COUNT(*) FROM allowed_applicants);
+  RAISE NOTICE 'Seed data inserted successfully!';
+  RAISE NOTICE 'Tasks: % rows', (SELECT COUNT(*) FROM tasks);
+  RAISE NOTICE 'Admins: % rows', (SELECT COUNT(*) FROM admins);
+  RAISE NOTICE 'Allowed Applicants: % rows', (SELECT COUNT(*) FROM allowed_applicants);
 END $$;

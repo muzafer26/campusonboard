@@ -82,13 +82,13 @@ export default function RegisterPage() {
       return;
     }
 
-    if (!/^[A-Za-z\s]{3,}$/.test(form.full_name)) {
-      setError("Full name must be at least 3 alphabetic characters.");
+    if (!/^[A-Za-z\s.'-]{3,}$/.test(form.full_name)) {
+      setError("Full name must be at least 3 characters.");
       return;
     }
 
-    if (!/^\d{10}$/.test(form.mobile)) {
-      setError("Mobile number must be exactly 10 digits.");
+    if (!/^(\+91)?\d{10}$/.test(form.mobile.replace(/\s/g, ""))) {
+      setError("Mobile number must be a valid 10-digit Indian mobile number.");
       return;
     }
 

@@ -59,11 +59,16 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    const studentsWithProgress = students.map(student => ({
-      ...student,
-      progress: progressMap[student.id]?.approved || 0,
-      total_tasks: 9,
-    }));
+    const studentsWithProgress = students.map(student => {
+      const prog = progressMap[student.id] || { approved: 0, total: 0 };
+      const progressPercent = prog.total > 0 ? Math.round((prog.approved / prog.total) * 100) : 0;
+      return {
+        ...student,
+        progress: progressPercent,
+        approved_count: prog.approved,
+        total_tasks: 9,
+      };
+    });
 
     return NextResponse.json({
       students: studentsWithProgress,

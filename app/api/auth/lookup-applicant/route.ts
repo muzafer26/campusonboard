@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
     const { data, error } = await supabase
       .from("allowed_applicants")
       .select("application_number, full_name, department, category, is_registered")
-      .ilike("application_number", parsed.data.application_number)
+      .eq("application_number", parsed.data.application_number)
       .maybeSingle();
 
     if (error || !data) {

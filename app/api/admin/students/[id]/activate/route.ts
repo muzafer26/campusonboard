@@ -48,26 +48,32 @@ export async function PATCH(
     );
   }
 
-  // Create 9 student_task rows
-  const { data: tasks } = await supabase
-    .from("tasks")
+  // Create 9 student_task rows (skip if already exist)
+  const { data: existingTasks } = await supabase
+    .from("student_tasks")
     .select("id")
-    .order("id", { ascending: true });
+    .eq("student_id", params.id);
 
-  if (tasks && tasks.length > 0) {
-    const studentTasks = tasks.map((task) => ({
-      student_id: params.id,
-      task_id: task.id,
-      status: "pending",
-    }));
+  if (!existingTasks || existingTasks.length === 0) {
+    const { data: tasks } = await supabase
+      .from("tasks")
+      .select("id")
+      .order("id", { ascending: true });
 
-    const { error: tasksError } = await supabase
-      .from("student_tasks")
-      .insert(studentTasks);
+    if (tasks && tasks.length > 0) {
+      const studentTasks = tasks.map((task) => ({
+        student_id: params.id,
+        task_id: task.id,
+        status: "pending",
+      }));
 
-    if (tasksError) {
-      console.error("Error creating student tasks:", tasksError);
-      // Don't fail the activation, but log the error
+      const { error: tasksError } = await supabase
+        .from("student_tasks")
+        .insert(studentTasks);
+
+      if (tasksError) {
+        console.error("Error creating student tasks:", tasksError);
+      }
     }
   }
 

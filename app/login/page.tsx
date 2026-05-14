@@ -137,8 +137,8 @@ function LoginFormContent() {
           </div>
         ) : (
           <div className="text-sm text-slate-700">
-            <p><span className="font-medium">Application No:</span> MH2026-001</p>
-            <p><span className="font-medium">DOB:</span> 2005-06-15</p>
+            <p><span className="font-medium">Application No:</span> APP2026001</p>
+            <p><span className="font-medium">DOB:</span> 2006-04-12</p>
             <p className="text-xs text-slate-500 mt-1">Register first using the application number above</p>
           </div>
         )}

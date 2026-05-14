@@ -14,7 +14,7 @@ import {
 import { AppShell } from "@/components/AppShell";
 import { EduBot } from "@/components/EduBot";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { StatusBadge } from "@/components/ui/status-badge";
+import { StatusBadge, type TaskStatusType } from "@/components/ui/status-badge";
 
 interface DashboardStats {
   total: number;
@@ -59,10 +59,9 @@ export default function StudentDashboard() {
         const res = await fetch("/api/student/dashboard");
         if (res.ok) {
           const data = await res.json();
-          setStats(data.counts);
+          setStats({ ...data.counts, progress_pct: data.progress });
           setTasks(data.tasks);
           setStudent(data.student);
-          setStats((prev) => ({ ...prev!, progress_pct: data.progress }));
         }
       } catch (error) {
         console.error("Failed to fetch dashboard data:", error);
@@ -86,7 +85,7 @@ export default function StudentDashboard() {
   };
 
   const nextTask = getNextPendingTask();
-  const allApproved = stats && stats.approved === 9;
+  const allApproved = stats && (stats.approved + (stats.completed - stats.approved)) === stats.total;
 
   if (loading) {
     return (
@@ -302,7 +301,7 @@ function StatCard({
 }: {
   label: string;
   value: number;
-  icon: any;
+  icon: React.ComponentType<{ className?: string }>;
   color: string;
 }) {
   return (
@@ -341,7 +340,7 @@ function TaskRow({ task, index }: { task: Task; index: number }) {
         )}
       </div>
       <div className="flex items-center gap-4">
-        <StatusBadge status={task.status as any} />
+        <StatusBadge status={task.status as TaskStatusType} />
         <Link href={`/student/tasks/${task.task_id}`}>
           <ChevronRight className="h-5 w-5 text-slate-400 hover:text-brand-blue" />
         </Link>
