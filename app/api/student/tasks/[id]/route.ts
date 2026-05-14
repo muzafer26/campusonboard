@@ -6,14 +6,15 @@ export const runtime = "nodejs";
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await context.params;
   const user = await getSessionFromRequest(req);
   if (!user || user.role !== "student") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const taskId = parseInt(params.id);
+  const taskId = parseInt(id);
   const supabase = getServiceClient();
 
   const { data: studentTask } = await supabase

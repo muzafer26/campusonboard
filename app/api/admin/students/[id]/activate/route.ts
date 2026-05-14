@@ -6,8 +6,9 @@ export const runtime = "nodejs";
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await context.params;
   const user = await getSessionFromRequest(req);
   if (!user || user.role !== "admin") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -19,7 +20,7 @@ export async function PATCH(
   const { data: student } = await supabase
     .from("students")
     .select("*")
-    .eq("id", params.id)
+    .eq("id", id)
     .eq("status", "pending_approval")
     .maybeSingle();
 
@@ -38,7 +39,7 @@ export async function PATCH(
       activated_at: new Date().toISOString(),
       rejection_reason: null,
     })
-    .eq("id", params.id);
+    .eq("id", id);
 
   if (updateError) {
     console.error("Activation error:", updateError);
@@ -52,7 +53,7 @@ export async function PATCH(
   const { data: existingTasks } = await supabase
     .from("student_tasks")
     .select("id")
-    .eq("student_id", params.id);
+    .eq("student_id", id);
 
   if (!existingTasks || existingTasks.length === 0) {
     const { data: tasks } = await supabase
@@ -62,7 +63,7 @@ export async function PATCH(
 
     if (tasks && tasks.length > 0) {
       const studentTasks = tasks.map((task) => ({
-        student_id: params.id,
+        student_id: id,
         task_id: task.id,
         status: "pending",
       }));

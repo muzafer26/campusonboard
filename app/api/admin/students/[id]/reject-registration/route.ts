@@ -11,8 +11,9 @@ const rejectSchema = z.object({
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await context.params;
   const user = await getSessionFromRequest(req);
   if (!user || user.role !== "admin") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -36,7 +37,7 @@ export async function PATCH(
       status: "rejected",
       rejection_reason: result.data.reason,
     })
-    .eq("id", params.id)
+    .eq("id", id)
     .eq("status", "pending_approval");
 
   if (error) {

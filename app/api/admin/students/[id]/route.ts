@@ -6,8 +6,9 @@ export const runtime = "nodejs";
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await context.params;
   const user = await getSessionFromRequest(req);
   if (!user || user.role !== "admin") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -19,7 +20,7 @@ export async function GET(
   const { data: student } = await supabase
     .from("students")
     .select("*")
-    .eq("id", params.id)
+    .eq("id", id)
     .maybeSingle();
 
   if (!student) {
@@ -30,7 +31,7 @@ export async function GET(
   const { data: tasks } = await supabase
     .from("student_tasks")
     .select("*, task:tasks(*)")
-    .eq("student_id", params.id)
+    .eq("student_id", id)
     .order("task_id", { ascending: true });
 
   return NextResponse.json({

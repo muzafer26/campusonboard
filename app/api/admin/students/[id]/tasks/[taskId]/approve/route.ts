@@ -6,8 +6,9 @@ export const runtime = "nodejs";
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string; taskId: string } }
+  context: { params: Promise<{ id: string; taskId: string }> }
 ) {
+  const { id, taskId } = await context.params;
   const user = await getSessionFromRequest(req);
   if (!user || user.role !== "admin") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -23,8 +24,8 @@ export async function PATCH(
       reviewed_by: user.id,
       rejection_reason: null,
     })
-    .eq("student_id", params.id)
-    .eq("task_id", parseInt(params.taskId))
+    .eq("student_id", id)
+    .eq("task_id", parseInt(taskId))
     .eq("status", "submitted");
 
   if (error) {
