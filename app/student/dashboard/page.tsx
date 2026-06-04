@@ -52,6 +52,7 @@ export default function StudentDashboard() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [student, setStudent] = useState<Student | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -62,9 +63,12 @@ export default function StudentDashboard() {
           setStats({ ...data.counts, progress_pct: data.progress });
           setTasks(data.tasks);
           setStudent(data.student);
+        } else {
+          setError("Failed to load dashboard data. Please try again.");
         }
-      } catch (error) {
-        console.error("Failed to fetch dashboard data:", error);
+      } catch (err) {
+        console.error("Failed to fetch dashboard data:", err);
+        setError("Network error. Please check your connection and try again.");
       } finally {
         setLoading(false);
       }
@@ -92,6 +96,23 @@ export default function StudentDashboard() {
       <AppShell role="student" fullName="Student">
         <div className="flex h-96 items-center justify-center">
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-brand-blue border-t-transparent" />
+        </div>
+      </AppShell>
+    );
+  }
+
+  if (error) {
+    return (
+      <AppShell role="student" fullName="Student">
+        <div className="flex h-96 flex-col items-center justify-center space-y-4">
+          <AlertCircle className="h-12 w-12 text-danger" />
+          <p className="text-lg font-medium text-slate-700">{error}</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="rounded-md bg-brand-blue px-4 py-2 text-sm font-semibold text-white hover:bg-brand-light"
+          >
+            Retry
+          </button>
         </div>
       </AppShell>
     );

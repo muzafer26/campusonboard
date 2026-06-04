@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
         user: { id: admin.id, name: admin.full_name, email: admin.email },
       });
 
-      setSessionCookie(token);
+      await setSessionCookie(token);
 
       return response;
     }
@@ -115,7 +115,7 @@ export async function POST(request: NextRequest) {
         user: { id: student.id, name: student.full_name, email: student.email },
       });
 
-      setSessionCookie(token);
+      await setSessionCookie(token);
 
       return response;
     }

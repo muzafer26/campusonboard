@@ -9,6 +9,8 @@ const publicPaths = [
   "/api/auth/lookup-applicant",
   "/api/verify-applicant",
   "/api/edubot",
+  "/production-os",
+  "/ship-it",
 ];
 
 const publicPrefixes = [

@@ -4,6 +4,6 @@ import { clearSessionCookie } from "@/lib/auth";
 export const runtime = "nodejs";
 
 export async function POST() {
-  clearSessionCookie();
+  await clearSessionCookie();
   return NextResponse.json({ ok: true, message: "Logged out successfully" });
 }

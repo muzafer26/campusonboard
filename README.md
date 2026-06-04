@@ -178,6 +178,15 @@ Students must submit the following 9 documents:
 
 ---
 
+## 🛡️ Production Readiness
+
+✅ **Architecture**: single-responsibility files  
+✅ **Resilience**: loading + error states handled gracefully  
+⚠️ **Scalability**: pagination implemented in admin lists, fully planned for v2  
+✅ **Observability**: basic console logging implemented (Sentry coming soon)  
+
+---
+
 ## 🧪 Demo Accounts
 
 | Role | Email | Password |
